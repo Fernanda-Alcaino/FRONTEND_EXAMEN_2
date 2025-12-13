@@ -3,7 +3,6 @@ import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useProducts } from "../context/ProductContext";
 import { useSales } from "../context/SalesContext";
-// 👇 IMPORTANTE: Importamos la URL de la API
 import { API_URL } from "../services/api";
 import AdminLayout from "../components/templates/AdminLayout";
 import Button from "../components/atoms/Button";
@@ -14,6 +13,9 @@ const AdminDashboard = () => {
   const { user, logout, isAdmin } = useAuth();
   const { products, saveProduct, deleteProduct } = useProducts();
   const { sales } = useSales();
+
+  // Estado para controlar qué pestaña se ve: 'inventory' o 'sales'
+  const [activeTab, setActiveTab] = useState('inventory');
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [productForm, setProductForm] = useState({
@@ -84,7 +86,7 @@ const AdminDashboard = () => {
   return (
     <AdminLayout user={user} logout={logout} isAdmin={isAdmin}>
       {/* HEADER */}
-      <div className="flex justify-between items-center mb-10 border-b pb-6">
+      <div className="flex justify-between items-center mb-6 border-b pb-6">
         <div>
           <h1 className="text-3xl font-bold text-gray-800">
             Panel de Administración
@@ -102,97 +104,120 @@ const AdminDashboard = () => {
         </div>
       </div>
 
-      {/* ================= INVENTARIO ================= */}
-      <h2 className="text-2xl font-bold mb-4">Inventario</h2>
+      {/* ================= PESTAÑAS (TABS) ================= */}
+      <div className="flex gap-6 border-b border-gray-200 mb-6">
+        <button
+          onClick={() => setActiveTab('inventory')}
+          className={`pb-3 px-2 font-medium transition-colors relative ${
+            activeTab === 'inventory'
+              ? 'text-green-600 border-b-2 border-green-600'
+              : 'text-gray-500 hover:text-gray-700'
+          }`}
+        >
+          📦 Inventario
+        </button>
+        <button
+          onClick={() => setActiveTab('sales')}
+          className={`pb-3 px-2 font-medium transition-colors relative ${
+            activeTab === 'sales'
+              ? 'text-green-600 border-b-2 border-green-600'
+              : 'text-gray-500 hover:text-gray-700'
+          }`}
+        >
+          💰 Registro de Ventas
+        </button>
+      </div>
 
-      <div className="bg-white rounded-xl shadow border overflow-hidden mb-16">
-        <table className="w-full text-left">
-          <thead className="bg-gray-100 text-xs uppercase">
-          <tr>
-            <th className="p-4">Producto</th>
-            <th className="p-4">Categoría</th>
-            <th className="p-4">Precio</th>
-            <th className="p-4 text-center">Acciones</th>
-          </tr>
-          </thead>
-          <tbody className="divide-y">
-          {products.map((p) => {
-            // 👇 LÓGICA AGREGADA: Construir URL de imagen correctamente
-            const imagenSrc = p.image && !p.image.startsWith('http')
-              ? `${API_URL}/uploads/${p.image}`
-              : p.image;
+      {/* ================= CONTENIDO: INVENTARIO ================= */}
+      {activeTab === 'inventory' && (
+        <div className="bg-white rounded-xl shadow border overflow-hidden animate-fade-in">
+          <table className="w-full text-left">
+            <thead className="bg-gray-100 text-xs uppercase">
+            <tr>
+              <th className="p-4">Producto</th>
+              <th className="p-4">Categoría</th>
+              <th className="p-4">Precio</th>
+              <th className="p-4 text-center">Acciones</th>
+            </tr>
+            </thead>
+            <tbody className="divide-y">
+            {products.map((p) => {
+              const imagenSrc = p.image && !p.image.startsWith('http')
+                ? `${API_URL}/uploads/${p.image}`
+                : p.image;
 
-            return (
-              <tr key={p.id}>
-                <td className="p-4 flex gap-4 items-center">
-                  <img
-                    src={imagenSrc || imgMacetero}
-                    alt={p.title}
-                    className="w-16 h-16 object-cover rounded border"
-                    onError={(e) => { e.target.src = imgMacetero; }} // Si falla, usa macetero por defecto
-                  />
-                  <div>
-                    <p className="font-bold">{p.title}</p>
-                    <p className="text-xs text-gray-400">ID {p.id}</p>
-                    <span className="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded">
-                        Stock {p.stock}
-                      </span>
-                  </div>
-                </td>
-                <td className="p-4">{p.category}</td>
-                <td className="p-4 font-bold text-green-700">
-                  {formatPrice(p.price)}
-                </td>
-                <td className="p-4 text-center">
-                  <div className="flex justify-center gap-3">
-                    <button onClick={() => handleOpenEdit(p)}>✏️</button>
-                    <button onClick={() => handleDelete(p.id)}>🗑️</button>
-                  </div>
+              return (
+                <tr key={p.id}>
+                  <td className="p-4 flex gap-4 items-center">
+                    <img
+                      src={imagenSrc || imgMacetero}
+                      alt={p.title}
+                      className="w-16 h-16 object-cover rounded border"
+                      onError={(e) => { e.target.src = imgMacetero; }}
+                    />
+                    <div>
+                      <p className="font-bold">{p.title}</p>
+                      <p className="text-xs text-gray-400">ID {p.id}</p>
+                      <span className="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded">
+                          Stock {p.stock}
+                        </span>
+                    </div>
+                  </td>
+                  <td className="p-4">{p.category}</td>
+                  <td className="p-4 font-bold text-green-700">
+                    {formatPrice(p.price)}
+                  </td>
+                  <td className="p-4 text-center">
+                    <div className="flex justify-center gap-3">
+                      <button onClick={() => handleOpenEdit(p)}>✏️</button>
+                      <button onClick={() => handleDelete(p.id)}>🗑️</button>
+                    </div>
+                  </td>
+                </tr>
+              );
+            })}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* ================= CONTENIDO: VENTAS ================= */}
+      {activeTab === 'sales' && (
+        <div className="bg-white rounded-xl shadow border overflow-hidden animate-fade-in">
+          <table className="w-full text-sm text-left">
+            <thead className="bg-gray-100 uppercase text-xs">
+            <tr>
+              <th className="p-4">Fecha</th>
+              <th className="p-4">Email Cliente</th>
+              <th className="p-4">Método</th>
+              <th className="p-4 text-right">Total</th>
+            </tr>
+            </thead>
+            <tbody className="divide-y">
+            {sales.length === 0 && (
+              <tr>
+                <td colSpan="4" className="p-6 text-center text-gray-400">
+                  No hay ventas registradas aún.
                 </td>
               </tr>
-            );
-          })}
-          </tbody>
-        </table>
-      </div>
+            )}
 
-      {/* ================= REGISTRO DE VENTAS ================= */}
-      <h2 className="text-2xl font-bold mb-4">Registro de Compras</h2>
-
-      <div className="bg-white rounded-xl shadow border overflow-hidden">
-        <table className="w-full text-sm">
-          <thead className="bg-gray-100 uppercase text-xs">
-          <tr>
-            <th className="p-4">Fecha</th>
-            <th className="p-4">Email</th>
-            <th className="p-4">Método</th>
-            <th className="p-4">Total</th>
-          </tr>
-          </thead>
-          <tbody className="divide-y">
-          {sales.length === 0 && (
-            <tr>
-              <td colSpan="4" className="p-6 text-center text-gray-400">
-                No hay ventas registradas
-              </td>
-            </tr>
-          )}
-
-          {sales.map((sale, index) => (
-            <tr key={index}>
-              <td className="p-4">
-                {new Date(sale.date).toLocaleDateString()}
-              </td>
-              <td className="p-4">{sale.clientEmail}</td>
-              <td className="p-4 capitalize">{sale.paymentMethod}</td>
-              <td className="p-4 font-bold text-green-700">
-                ${sale.total}
-              </td>
-            </tr>
-          ))}
-          </tbody>
-        </table>
-      </div>
+            {sales.map((sale, index) => (
+              <tr key={index}>
+                <td className="p-4">
+                  {new Date(sale.date).toLocaleDateString()}
+                </td>
+                <td className="p-4">{sale.clientEmail}</td>
+                <td className="p-4 capitalize">{sale.paymentMethod}</td>
+                <td className="p-4 font-bold text-green-700 text-right">
+                  ${sale.total}
+                </td>
+              </tr>
+            ))}
+            </tbody>
+          </table>
+        </div>
+      )}
 
       {/* ================= MODAL ================= */}
       {isModalOpen && (
