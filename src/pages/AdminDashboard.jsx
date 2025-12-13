@@ -3,6 +3,8 @@ import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useProducts } from "../context/ProductContext";
 import { useSales } from "../context/SalesContext";
+// 👇 IMPORTANTE: Importamos la URL de la API
+import { API_URL } from "../services/api";
 import AdminLayout from "../components/templates/AdminLayout";
 import Button from "../components/atoms/Button";
 import { formatPrice } from "../utils/formatters";
@@ -114,34 +116,42 @@ const AdminDashboard = () => {
           </tr>
           </thead>
           <tbody className="divide-y">
-          {products.map((p) => (
-            <tr key={p.id}>
-              <td className="p-4 flex gap-4 items-center">
-                <img
-                  src={p.image}
-                  alt={p.title}
-                  className="w-16 h-16 object-cover rounded border"
-                />
-                <div>
-                  <p className="font-bold">{p.title}</p>
-                  <p className="text-xs text-gray-400">ID {p.id}</p>
-                  <span className="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded">
-                      Stock {p.stock}
-                    </span>
-                </div>
-              </td>
-              <td className="p-4">{p.category}</td>
-              <td className="p-4 font-bold text-green-700">
-                {formatPrice(p.price)}
-              </td>
-              <td className="p-4 text-center">
-                <div className="flex justify-center gap-3">
-                  <button onClick={() => handleOpenEdit(p)}>✏️</button>
-                  <button onClick={() => handleDelete(p.id)}>🗑️</button>
-                </div>
-              </td>
-            </tr>
-          ))}
+          {products.map((p) => {
+            // 👇 LÓGICA AGREGADA: Construir URL de imagen correctamente
+            const imagenSrc = p.image && !p.image.startsWith('http')
+              ? `${API_URL}/uploads/${p.image}`
+              : p.image;
+
+            return (
+              <tr key={p.id}>
+                <td className="p-4 flex gap-4 items-center">
+                  <img
+                    src={imagenSrc || imgMacetero}
+                    alt={p.title}
+                    className="w-16 h-16 object-cover rounded border"
+                    onError={(e) => { e.target.src = imgMacetero; }} // Si falla, usa macetero por defecto
+                  />
+                  <div>
+                    <p className="font-bold">{p.title}</p>
+                    <p className="text-xs text-gray-400">ID {p.id}</p>
+                    <span className="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded">
+                        Stock {p.stock}
+                      </span>
+                  </div>
+                </td>
+                <td className="p-4">{p.category}</td>
+                <td className="p-4 font-bold text-green-700">
+                  {formatPrice(p.price)}
+                </td>
+                <td className="p-4 text-center">
+                  <div className="flex justify-center gap-3">
+                    <button onClick={() => handleOpenEdit(p)}>✏️</button>
+                    <button onClick={() => handleDelete(p.id)}>🗑️</button>
+                  </div>
+                </td>
+              </tr>
+            );
+          })}
           </tbody>
         </table>
       </div>
@@ -219,7 +229,7 @@ const AdminDashboard = () => {
                 name="image"
                 value={productForm.image}
                 onChange={handleChange}
-                placeholder="URL imagen"
+                placeholder="URL imagen (ej: tomate.jpg)"
                 className="w-full border p-2 rounded"
               />
 
