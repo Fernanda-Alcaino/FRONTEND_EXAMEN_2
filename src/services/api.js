@@ -1,58 +1,37 @@
 import axios from 'axios';
 
-// 1. Crear la instancia de Axios con la URL base
+// 1. Definimos la URL (Si usas variable de entorno o directo localhost)
+const BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
+
+// 2. Creamos la instancia de Axios
 const api = axios.create({
-  baseURL: 'https://fakestoreapi.com', // API pública para productos
-  headers: {
-    'Content-Type': 'application/json',
-  },
+  baseURL: BASE_URL,
 });
 
-// 2. Interceptor de REQUEST (Salida)
-// Se ejecuta ANTES de que la petición salga hacia el servidor
-api.interceptors.request.use(
-  (config) => {
-    // Buscar el token guardado en el navegador
-    const token = localStorage.getItem('token');
+// --- FUNCIONES ---
 
-    // Si existe, lo inyectamos en los headers
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
+export const getProducts = async () => {
+  try {
+    const response = await api.get('/products');
+    return response.data; // Importante: Retornar los datos
+  } catch (error) {
+    console.error("Error obteniendo productos:", error);
+    return [];
   }
-);
+};
 
-// 3. Interceptor de RESPONSE (Llegada)
-// Se ejecuta CUANDO el servidor responde
-api.interceptors.response.use(
-  (response) => {
-    // Si la respuesta es exitosa (200-299), pasa directo
-    return response;
-  },
-  (error) => {
-    // Manejo global de errores
-
-    // Si el error es 401 (Token inválido o expirado)
-    if (error.response && error.response.status === 401) {
-      console.warn('Sesión expirada o inválida. Cerrando sesión...');
-
-      // Limpiar almacenamiento local
-      localStorage.removeItem('token');
-      localStorage.removeItem('user_data');
-
-      // Forzar redirección al login
-      // Usamos window.location porque aquí no tenemos acceso al router de React
-      window.location.href = '/login';
-    }
-
-    // Propagar el error para que el componente (Home, Admin) pueda mostrar el mensaje rojo
-    return Promise.reject(error);
+export const deleteProduct = async (id) => {
+  try {
+    await api.delete(`/products/${id}`);
+    return true;
+  } catch (error) {
+    console.error(error);
+    return false;
   }
-);
+};
 
+// 👇 ESTO FALTABA: Exportamos la URL para que la usen las imágenes
+export const API_URL = BASE_URL;
+
+// Exportamos la instancia por defecto
 export default api;

@@ -1,16 +1,16 @@
 import React from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
-import { useProducts } from '../context/ProductContext'; // <--- Usamos el contexto
+import { useProducts } from '../context/ProductContext';
 import MainLayout from '../components/templates/MainLayout';
 import ProductGrid from '../components/organisms/ProductGrid';
-import useFetch from '../hooks/useFetch';
 
 const Home = () => {
   const { user, logout, isAdmin } = useAuth();
   const { addToCart, cartCount } = useCart();
-  const { products } = useProducts(); // <--- Traemos los productos globales
-  const { loading } = useFetch('/products');
+
+  // Ahora obtenemos productos Y el estado de loading directamente del contexto
+  const { products, loading } = useProducts();
 
   return (
     <MainLayout user={user} logout={logout} isAdmin={isAdmin} cartCount={cartCount}>
@@ -25,10 +25,10 @@ const Home = () => {
       </div>
 
       <div className="mb-20 px-4">
-        {/* Usamos 'products' del contexto en lugar de la lista fija */}
+        {/* Pasamos los datos reales del backend */}
         <ProductGrid
           products={products}
-          loading={false} // Ya no cargamos de API externa visualmente
+          loading={loading} // ¡Ahora sí pasamos el loading real!
           onAddToCart={(p) => addToCart(p)}
         />
       </div>
