@@ -1,13 +1,15 @@
 export const formatPrice = (amount) => {
-  // Si no hay precio, devolvemos $0
-  if (!amount && amount !== 0) return "$0";
+  // 1. Si no es un número válido, devolvemos $0
+  if (amount === null || amount === undefined) return "$0";
 
-  // Formato chileno (es-CL): usa puntos para miles y coma para decimales.
-  // Forzamos 0 decimales.
+  // 2. Convertimos a número y redondeamos para eliminar decimales matemáticamente
+  const numericAmount = Math.round(Number(amount));
+
+  // 3. Formateamos a peso chileno (sin decimales)
   return new Intl.NumberFormat("es-CL", {
     style: "currency",
     currency: "CLP",
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
-  }).format(amount);
+  }).format(numericAmount);
 };
