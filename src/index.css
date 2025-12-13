@@ -1,0 +1,11 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+body {
+  margin: 0;
+  font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; /* Letra moderna */
+  background-color: #ffffff; /* Fondo blanco puro */
+  -webkit-font-smoothing: antialiased;
+}
