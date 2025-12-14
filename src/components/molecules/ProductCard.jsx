@@ -2,16 +2,22 @@ import React from 'react';
 // 👇 Importamos la utilidad que acabamos de crear
 import { formatPrice } from '../../utils/formatters';
 import Button from '../atoms/Button'; // Asumiendo que tienes este botón
-import { API_URL } from '../../services/api';
+import { API_URL } from '../../services/api'; // La URL base de tu Backend (ej: http://localhost:3000)
 
 const ProductCard = ({ product, onAddToCart }) => {
-  // Manejo de la imagen: si viene del backend o es una URL externa
-  const imagenSrc = product.image && !product.image.startsWith('http')
-    ? `${API_URL}/uploads/${product.image}`
-    : product.image;
 
-  // Título seguro (para evitar el error que tuviste antes)
-  const safeTitle = product.title || product.name || "Producto sin nombre";
+  // 🚨 CORRECCIÓN 1: Usamos la propiedad 'imageUrl' (de la BD)
+  const imageFileName = product.imageUrl;
+
+  // 🚨 CORRECCIÓN 2: Construimos la URL usando el prefijo '/api/uploads/'
+  // Ejemplo: http://localhost:3000/api/uploads/tomates.jpg
+  const imagenSrc = imageFileName && !imageFileName.startsWith('http')
+    ? `${API_URL}/api/uploads/${imageFileName}` // RUTA CORREGIDA
+    : imageFileName; // Si 'imageUrl' ya es una URL completa, la usa.
+
+  // 🚨 CORRECCIÓN 3: El nombre ahora debe venir en la propiedad 'name'
+  // (Porque limpiamos la BD y la Entidad para usar 'name')
+  const safeTitle = product.name || "Producto sin nombre"; // Solo necesitamos verificar 'name'
 
   return (
     <div className="bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow duration-300 overflow-hidden border border-gray-100 flex flex-col h-full">
@@ -21,7 +27,10 @@ const ProductCard = ({ product, onAddToCart }) => {
           src={imagenSrc || 'https://via.placeholder.com/300?text=Sin+Imagen'}
           alt={safeTitle}
           className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-500"
-          onError={(e) => { e.target.src = 'https://via.placeholder.com/300?text=Error+Imagen'; }}
+          onError={(e) => {
+            e.target.onerror = null; // Previene bucles infinitos de error
+            e.target.src = 'https://via.placeholder.com/300?text=Error+Imagen';
+          }}
         />
         {/* Badge de Categoría (Opcional) */}
         {product.category && (
@@ -34,7 +43,7 @@ const ProductCard = ({ product, onAddToCart }) => {
       {/* Contenido */}
       <div className="p-5 flex flex-col flex-grow">
         <h3 className="text-lg font-bold text-gray-800 mb-2 line-clamp-2">
-          {safeTitle}
+          {safeTitle} {/* Muestra el nombre seguro (product.name) */}
         </h3>
 
         {/* Descripción corta (si existe) */}
