@@ -6,7 +6,6 @@ import { useSales } from "../context/SalesContext";
 import { API_URL } from "../services/api";
 import AdminLayout from "../components/templates/AdminLayout";
 import Button from "../components/atoms/Button";
-// 👇 IMPORTANTE: Importamos el formateador
 import { formatPrice } from "../utils/formatters";
 import imgMacetero from "../assets/image/macetero.jpg";
 
@@ -26,7 +25,6 @@ const AdminDashboard = () => {
     stock: 0,
   });
 
-  // ... (Funciones del modal: handleOpenCreate, handleOpenEdit, etc. se mantienen igual) ...
   const handleOpenCreate = () => {
     setProductForm({ id: null, title: "", price: "", category: "", image: "", stock: 0 });
     setIsModalOpen(true);
@@ -94,19 +92,23 @@ const AdminDashboard = () => {
             </thead>
             <tbody className="divide-y">
             {products.map((p) => {
-              const imagenSrc = p.image && !p.image.startsWith('http') ? `${API_URL}/uploads/${p.image}` : p.image;
+              // 👇 CAMBIO ÚNICO: Corregida la ruta (/api/uploads/) y la propiedad (imageUrl)
+              const imgVal = p.imageUrl || p.image;
+              const imagenSrc = imgVal && !imgVal.startsWith('http')
+                ? `${API_URL}/api/uploads/${imgVal}`
+                : imgVal;
+
               return (
                 <tr key={p.id}>
                   <td className="p-4 flex gap-4 items-center">
                     <img src={imagenSrc || imgMacetero} alt={p.title} className="w-16 h-16 object-cover rounded border" onError={(e) => { e.target.src = imgMacetero; }} />
                     <div>
-                      <p className="font-bold">{p.title}</p>
+                      <p className="font-bold">{p.title || p.name}</p>
                       <p className="text-xs text-gray-400">ID {p.id}</p>
                     </div>
                   </td>
                   <td className="p-4">{p.category}</td>
                   <td className="p-4 font-bold text-green-700">
-                    {/* 👇 PRECIO FORMATEADO SIN DECIMALES */}
                     {formatPrice(p.price)}
                   </td>
                   <td className="p-4 text-center">
@@ -143,7 +145,6 @@ const AdminDashboard = () => {
                 <td className="p-4">{sale.clientEmail}</td>
                 <td className="p-4 capitalize">{sale.paymentMethod}</td>
                 <td className="p-4 font-bold text-green-700 text-right">
-                  {/* 👇 TOTAL VENTA FORMATEADO */}
                   {formatPrice(sale.total)}
                 </td>
               </tr>
@@ -153,7 +154,7 @@ const AdminDashboard = () => {
         </div>
       )}
 
-      {/* MODAL (Simplificado visualmente, el código es el mismo de antes) */}
+      {/* MODAL */}
       {isModalOpen && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-white rounded-xl w-full max-w-lg p-6">
